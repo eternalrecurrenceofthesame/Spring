@@ -52,7 +52,9 @@ RequestMappingHandlerAdapter -> ArgumentResolver(HTTP message converter) -> Cont
 * ArgumentResolver
 
 애노테이션 기반 컨트롤러를 처리하는 RequestMappingHandlerAdapter 는 @RequestParam, @ModelAttribute, @RequestBody HttpEntity 등
-다양한 애노테이션을 다루는 ArgumentResolver 를 호출한다. Resolver 는 핸들러가 필요로 하는 파라미터 객체를 생성해서 핸들러를 호출한다.
+다양한 애노테이션을 다루는 ArgumentResolver 를 호출한다.
+
+Resolver 는 핸들러가 필요로 하는 파라미터 객체를 생성해서 핸들러를 호출한다.
 ```
 ```
 * ReturnValueHandler
