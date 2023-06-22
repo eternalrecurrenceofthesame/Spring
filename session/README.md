@@ -111,5 +111,45 @@ public String homeLogin(HttpServletRequest request, Model model){
 * @SessionAttribute 을 사용해서 이미 로그인된 사용자 차기 
 
 
+```
 
+## 스프링 시큐리티에서 세션을 사용하는 방식에 대해
+
+스프링 시큐리티 Authentication 에 성공하면 HttpSession 에 세션 값이 저장된다. 그리고 세션 쿠키르 가진 클라이언트의 요청이 
+
+들어오면 인증 절차를 다시 거치지 않고 세션에 값이 있으면 SecurityContext 에서 Authentication 값을 그대로 사용할 수 있다. 
+
+```
+* 시큐리티에서 세션 값을 가져오는 메커니즘
+
+스프링 시큐리티를 사용하면서 사용자 요청이 들어오면 항상 SecurityContextHolderFilter 를 거쳐간다. 
+(SecurityContextPersistenceFilter -> HttpSecurityContextRepository 순으로 거쳐감)
+
+인증하기 전 첫 요청이라면 Authentication 매커니즘을 수행하고 SecurityContext 에 Authentication 이 보관된다.
+
+그리고 HttpSession 에 SecurityContext 값이 저장되며 스레드 요청이 끝나고 사용자 응답을 할 때 SecurityContextHolder 의
+SecurityContext 값은 Clear() 된다.
+
+(즉 세션에 SecuriytyContext 가 저장된 상태임)
+
+인증후 쿠키에 세션값으로 SecurityContext 값을 같이 보낸다면 앞서 말한 SecurityContextHolderFilter 를 다시 거치고
+SecurityContext 값이 있는지 확인 이때는 세션에 값이 있기때문에 Authentication 절차를 거치지 않고
+
+세션에서 SecurityContext 값을 꺼내서 SecurityContextHolder 로 감싸고 이 값을 사용할 수 있다. 
+```
+
+```
+* 스프링 시큐리티에서 HttpSession 값 사용 예시
+
+(HttpSession session)
+
+SecurityContext context = (SecurityContext) session
+             .getAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY);
+
+Authentication authentication1 = context.getAuthentication();
+System.out.println(authentication1.getPrincipal());
+
+세션으로 전달되는 SecurityContext 값을 꺼내서 사용할 수 있다.
+
+https://catsbi.oopy.io/f9b0d83c-4775-47da-9c81-2261851fe0d0 참고 
 ```
