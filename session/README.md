@@ -103,3 +103,13 @@ public String homeLogin(HttpServletRequest request, Model model){
    return "loginHome";
   }
 ```
+
+## HttpSession 을 사용해서 로그인 처리하기 2
+
+앞서 살펴본 것보다 간편하게 세션값 처리하기 
+```
+* @SessionAttribute 을 사용해서 이미 로그인된 사용자 차기 
+
+
+
+```
