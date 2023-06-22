@@ -2,6 +2,12 @@
 
 세션이란 서버에 중요한 정보를 보관하면서 연결을 유지하는 방법을 의미한다. 
 
+이 저장소에서는 스프링이 제공하는 세션 기능과 스프링 시큐리티에서 세션 값을 관리하는 메커니즘에 대해 기술한다. 
+
+스프링이 제공하는 세션 기능을 직접 만들어서 사용하는 것보다 스프링 시큐리티를 사용하는 것이 유용하기 때문에 
+
+스프링 시큐리티에 관한 내용위주로 보는 것을 추천한다. 
+
 ### 세션동작 예시
 ```
 사용자가 아이디와 패스워드로 인증에 성공하면 서버에서는 고유한 세션Id 를 생성해서 세션 저장소에 연결 정보(사용자) 를 보관한다.
@@ -110,10 +116,60 @@ public String homeLogin(HttpServletRequest request, Model model){
 ```
 * @SessionAttribute 을 사용해서 이미 로그인된 사용자 차기 
 
+@GetMapping("/")
+public String homeLogin(
+        @SessionAttribute(name = SessionConst.LOGIN_MEMBER, required = false) Member loginMember, Model model){
+
+  // 세션에 회원 데이터가 없으면 홈으로
+  if(loginMember == null){
+     return "home";
+  }
+
+ model.addAttribute("member", loginMember);
+  return "loginHome";
+```
+```
+* TrackingModes
+
+jsessionid 를 url 로 노출하고 싶지 않다면 properties 에 다음 설정을 추가한다.
+server.servlet.session.tracking-modes=cookie 
+```
+```
+* 세션 타임아웃 설정하기
+
+세션은 기본적으로 메모리에 생성되기 때문에 꼭 필요한 경우만 생성하고 메모리 관리를 위해 무한정 세션을
+가지고 있을 수는 없다.
+
+또한 세션이 탈취 당한 경우 세션 타임을 설정하지 않는다면 재사용의 위험성도 있다. 
+
+세션 타임아웃 설정은 30 분을 기준으로 하며 최근 요청 기준으로 30 분 정도를 유지해주는 것이 좋다.
+(HttpSession 은 기본적으로 이 방식을 사용함)
+
+application.properties 세션 글로벌 설정
+server.servlet.session.timeout=60 : 60초, 기본은 1800(30분)
+
+session.setMaxInactiveInterval(1800); // 자바 설정
+
+참고로 스프링 시큐리티를 사용할 경우 시큐리티 필터체인으로 설정하면 된다.
+```
+
+### 기타 세션 정보 출력 예시 
+```
+(HttpSession session)
+
+session.getAttributeNames().asIterator()
+ .forEachRemaining(name -> log.info("session name={}, value={}",
+name, session.getAttribute(name)));
+ log.info("sessionId={}", session.getId());
+ log.info("maxInactiveInterval={}", session.getMaxInactiveInterval());
+ log.info("creationTime={}", new Date(session.getCreationTime()));
+ log.info("lastAccessedTime={}", new
+Date(session.getLastAccessedTime()));
+ log.info("isNew={}", session.isNew());
 
 ```
 
-## 스프링 시큐리티에서 세션을 사용하는 방식에 대해
+## 스프링 시큐리티에서 세션을 사용하기 
 
 스프링 시큐리티 Authentication 에 성공하면 HttpSession 에 세션 값이 저장된다. 그리고 세션 쿠키르 가진 클라이언트의 요청이 
 
