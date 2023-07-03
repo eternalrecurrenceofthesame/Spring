@@ -56,3 +56,87 @@ server.error.path=/error - 오류 페이지 경로 설정 이 경로는 BasicErr
 
 ErrorController, BasicErrorController 를 상속받아서 공통 처리 컨트롤러를 확장할 수도 있다.  
 ```
+
+# API 예외 처리하기
+```
+템플릿을 사용할 때는 BasicErrorController 를 사용해서 오류 화면을 호출하면 되지만 API 는 각 시스템 마다 응답 모양이
+다르고 스펙도 모두 다르기 때문에 예외 상황에서 단순히 오류 화면을 출력하는 것이 아니라 예외에 따라서
+
+각각 다른 데이터를 출력해야 할 수도 있다. 같은 예외라도 컨트롤러에서 발생했는가에 따라 다른 예외 데이터 응답이 필요하다.
+스프링은 API 예외를 처리하는 편리한 기능을 제공한다.
+```
+## 스프링이 제공하는 기능으로 API 응답하기 
+
+### 1. API 응답 객체 만들기 
+```
+* 예외 발생시 API 응답으로 사용할 객체
+
+@Data
+@AllArgsConstructor
+public class ErrorResult{
+  private String code;
+  private String message;
+}
+```
+### 2. @ExceptionHandler 로 예외 상황에 맞는 응답하기
+```
+@Slf4j
+@RestControllerAdvice // @ControllerAdvice + @ResponseBody
+public class ExControllerAdvice {
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ErrorResult illegalExHandle(IllegalArgumentException e){
+        log.error("[exceptionHandle] ex", e);
+        return new ErrorResult("BAD", e.getMessage());
+    }
+
+    @ExceptionHandler
+    public ResponseEntity<ErrorResult> userExHandle(ExecutionControl.UserException e){
+        log.error("[exceptionHandle] ex", e);
+        ErrorResult errorResult = new ErrorResult("USER-EX", e.getMessage());
+        return new ResponseEntity<>(errorResult, HttpStatus.BAD_REQUEST);
+    }
+
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    @ExceptionHandler
+    public ErrorResult exHandle(Exception e){
+        log.error("[exceptionHandle] ex", e);
+        return new ErrorResult("EX", "내부 오류");
+    }
+}
+```
+```
+* @ExceptionHandler
+
+@ExceptionHandler 를 사용하면 부모 클래스뿐만 아니라 자식 클래스 예외까지 잡을 수 있으며 다수의 예외를
+처리할 수도 있다. (부모 자식 두 가지 예외가 있으면 구체적인 자식이 우선순위를 가짐)
+
+@ExceptionHandler 의 예외를 생략할 수 있고 생략시 파라미터값을 사용한다.
+```
+```
+* @ControllerAdvice
+
+어드바이스에 대상을 지정하지 않으면 글로벌 설정을 가지며 모든 컨트롤러에 적용된다. 특정 패키지나 클래스에만
+적용할 수도 있다.
+
+@ControllerAdvice(annotations = RestController.class)
+@ControllerAdvice("org.example.controllers")
+@ControllerAdvice(assignableTypes = {ControllerInterface.class,AbstractController.class})
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
